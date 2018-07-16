@@ -1,0 +1,74 @@
+
+.container{
+   height: 100%;
+   width: 100%;
+   border: solid black 2px;
+
+
+}
+
+.inner{
+    align-self: center;
+    height: 60%;
+    width: 50%;
+    border: solid blue 2px;
+ 
+ 
+ }
+
+
+.input{
+    font-family: Poppins-Regular;
+
+font-size: 15px;
+
+color: #808080;
+
+line-height: 1.2;
+
+text-align: right;
+
+position: absolute;
+
+/* top: 14px; */
+
+/* left: -105px; */
+
+width: 80px;
+}
+
+#id{
+    font-family: Poppins-Regular;
+
+font-size: 15px;
+
+color: #555555;
+
+line-height: 1.2;
+
+display: block;
+
+width: 30%;
+
+background: transparent;
+
+padding: 0 5px;
+}
+
+#password{
+    font-family: Poppins-Regular;
+
+font-size: 15px;
+
+color: #555555;
+
+line-height: 1.2;
+
+display: block;
+
+width: 30%;
+
+background: transparent;
+
+padding: 0 5px;
+}
