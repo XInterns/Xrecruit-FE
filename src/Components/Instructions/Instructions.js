@@ -7,10 +7,7 @@ import {
     Switch,
     Redirect
   } from 'react-router-dom';
-  var obj={};
-  obj=sessionStorage.getItem('response');  //getting the response from session storage which was stored on login
-  obj = JSON.parse(obj);
-
+  
   var temp=0;
   export default class Instructions extends Component{ 
     constructor(props) {
@@ -21,6 +18,7 @@ import {
         this.nextpage=this.nextpage.bind(this);
         this.checkstatus=this.checkstatus.bind(this);
     }
+    
     componentWillMount()
     {
         this.checkstatus();
@@ -37,46 +35,39 @@ import {
     }
     nextpage()
     {
-      //  const statechange =() => new Promise((resolve,reject)=>{
             temp=1;
             this.setState({
                 nextpage: true
             })
-       // })
-        //.then(this.checkstatus);
-       // temp=1;
-      // var obj={};
-      obj=sessionStorage.getItem('response');
-     //console.log(JSON.stringify(obj));
-      obj = JSON.parse(obj);
-     console.dir(obj.data);
-       console.log("status1 "+this.state.nextpage)
+       
+           let obj=sessionStorage.getItem('response');
+           obj = JSON.parse(obj);
+           console.dir(obj.data);
+           console.log("status1 "+this.state.nextpage)
     }
     render()
-   { return( 
+   { let obj = JSON.parse(sessionStorage.getItem('response'));
+       
+    return( 
+          <div className="Instructions-outer">
+           { this.state.nextpage && <Redirect to='/details'/>}
 
-  <div>
-    { this.state.nextpage && <Redirect to='/details'/>}
-  <div >
-    <h2>Xebia Testing</h2>
-    <span>Duration: <span>{obj.data[0].duration}</span> mins(Your time will start only after you see the list of questions)</span>
-  </div>
-  <div >
-    <h3>Description</h3>
-     <h4>This is a sample test</h4>
-  </div>
-  <div >
-      <h1> The test comprises of {Object.keys(obj.data).length-1} questions</h1>
-    <h3>This test will have the following type of questions</h3>
-    {/* <span>Objective questions</span> */}
-    <span>Multiple choice</span><br/>
-    <span>Single choice</span><br/>
-    <span>Subjective</span>
+   <div className="Instructions-header"><span>INSTRUCTIONS</span></div> 
+        <div className="Instructions-inner">
+         <div className="Inner">
+            <p className="statement-one">This is a sample test</p>
+            <span className="statement-two">Duration: <span>{parseInt(obj.data[1][0].duration/3600)} hrs and {parseInt((obj.data[1][0].duration%3600)/60)} mins</span> (Your time will start only after you see the list of questions)</span>
 
+            <p className="statement-three"> The test comprises of {Object.keys(obj.data[1]).length} questions</p>
+            <p className="statement-four">This test will have the following type of questions</p>
+            <span>Multiple choice</span><br/>
+            <span>Single choice</span><br/>
+            <span>Subjective</span>
+
+         </div>
   </div>
-  <div>
-      <br/>
-      <button onClick={this.nextpage}>NextPage-></button>
+   <div className="next-button">
+      <button className="button" onClick={this.nextpage}>NextPage-></button>
   </div>
   </div>);
  }

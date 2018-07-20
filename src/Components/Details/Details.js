@@ -15,20 +15,18 @@ var obj={};
 
 export default class Details extends Component{
     
-
     constructor(props) {
         super(props);
         this.state = {
             nextpage: false,
             value1:'' ,
-            value2:obj.data[0].email ,
+            value2:sessionStorage.getItem('email') ,
             value3:'' ,
             value4:'' ,
             value5:'',
             value6:''
         }
         this.nextpage=this.nextpage.bind(this);
-        //this.checkstatus=this.checkstatus.bind(this);
         this.handleChange1=this.handleChange1.bind(this);
         this.handleChange2=this.handleChange2.bind(this);
 
@@ -68,7 +66,7 @@ export default class Details extends Component{
         obj.percentage=this.state.value6;
         axios({
             method: 'post',
-            url: 'http://192.168.2.188:7000/details',
+            url: 'http://192.168.2.191:7000/details',
             data: {
                 name: obj.name,
                 email: obj.email,
@@ -86,26 +84,24 @@ export default class Details extends Component{
 
         render()
         {
-            return (<div>
+            return (
+            
+            <div className="Details-outer">
                  {this.state.nextpage && <Redirect to='/test'/>}
-                <div>
-                    <h2>Please enter your details before starting the test</h2>
-                </div>
-                <div>
-                    <form>
-                        <pre>
-                            Name                    <input type="text" value={this.state.value1} name="firstname" onChange={this.handleChange1}  /> <br />
-                            Email                   <input type="text" value={this.state.value2} name="email" onChange={this.handleChange2}  /> <br />
-                            Contact                 <input type="text"  value={this.state.value3} name="contact" onChange={this.handleChange3} /> <br />
-                            Current address        <input type="text" value={this.state.value4} name="current address" onChange={this.handleChange4} /> <br />
-                            College/University      <input type="text"value={this.state.value5}  name="college" onChange={this.handleChange5} /> <br />
-                            Percentage/CGPA         <input type="text"value={this.state.value6}  name="percentage" onChange={this.handleChange6} /> <br /> 
-                            <input type="button" name="submit" value="Submit and Proceed" onClick={this.nextpage}
-                            />
-                        </pre>
-                    </form>
-
-                </div>
+                <div className="Details-header">PLEASE ENTER YOUR DETAILS</div>
+                
+                        <pre className="Details-inner">
+                            Name                    <input className="Name"  type="text" value={this.state.value1} name="firstname" onChange={this.handleChange1}  /> <br />
+                            Email                   <input className="Email"  type="text" value={this.state.value2} name="email" onChange={this.handleChange2}  /> <br />
+                            Contact                 <input className="Contact"  type="text"  value={this.state.value3} name="contact" onChange={this.handleChange3} /> <br />
+                            Current address         <input className="Current-address"  type="text" value={this.state.value4} name="current address" onChange={this.handleChange4} /> <br />
+                            College/University      <input className="College-University"  type="text"value={this.state.value5}  name="college" onChange={this.handleChange5} /> <br />
+                            Percentage/CGPA         <input className="Percentage"  type="text"value={this.state.value6}  name="percentage" onChange={this.handleChange6} /> <br /> 
+                           
+                        </pre>    
+                        <div className="Submit-button">       
+                            <input className="SubmitandProceed" type="button" name="submit" value="Submit and Proceed" onClick={this.nextpage}/>
+                        </div>
 
             </div>);
         

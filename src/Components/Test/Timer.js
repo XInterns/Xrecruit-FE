@@ -1,13 +1,27 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-export default class Example extends React.Component {
-  constructor() {
-    super();
-    this.state = { time: {}, seconds:120*60};
+import axios from 'axios';
+import {
+  BrowserRouter as Router,
+  Link,
+  Route,
+  Switch,
+  Redirect
+} from 'react-router-dom';
+var flag=0;
+export default class Timer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { time: {}, 
+                  seconds:(this.props.a),
+                   nextpage:false
+                  };
     this.timer = 0;
     this.startTimer = this.startTimer.bind(this);
     this.countDown = this.countDown.bind(this);
+    this.autosave= this.autosave.bind(this);
   }
+
 
   secondsToTime(secs){
     let hours = Math.floor(secs / (60 * 60));
@@ -31,34 +45,63 @@ export default class Example extends React.Component {
     this.setState({ time: timeLeftVar });
   }
 
-  startTimer() {
+  startTimer()
+   {
+    console.log(sessionStorage.getItem('duration'))
+    
     if (this.timer == 0) {
       this.timer = setInterval(this.countDown, 1000);
+      setInterval(this.autosave,3000);
+      
+    }
+  
+  }
+  autosave()
+  {
+   
+    var dur=sessionStorage.getItem('duration');
+    if(dur==300)alert("Only five minutes left!!");
+    console.log("hit",dur)
+    if(flag==0)
+    {
+    axios({
+      method: 'post',
+      url: 'http://192.168.2.191:7000/updatetime',
+      data: {
+        duration:dur,
+        email:sessionStorage.getItem('email')      
+      }
+  });
+    if(dur==0){
+      flag=1;
+    }
     }
   }
 
   countDown() {
     // Remove one second, set state so a re-render happens.
-    let seconds = this.state.seconds - 1;
+    if(sessionStorage.getItem('duration')!=0)
+    {let seconds = this.state.seconds - 1;
+    sessionStorage.setItem("duration",seconds);
+
     this.setState({
       time: this.secondsToTime(seconds),
       seconds: seconds,
     });
-    
-    // Check if we're at zero.
-    if (seconds == 0) { 
-      clearInterval(this.timer);
-    }
+  }else {clearInterval(this.timer);
+        
+  }
   }
 
   render() {
     return(
       <div>
-        <button onClick={this.startTimer}>Start</button>
-       h:{this.state.time.h} m: {this.state.time.m} s: {this.state.time.s}
+        {(sessionStorage.getItem('duration')==0)?this.state.nextpage=true:''} 
+        {(this.state.nextpage) && <Redirect to='/submit'/>} 
+        {this.startTimer()} 
+          Hr:{this.state.time.h} Min:{this.state.time.m} Sec:{this.state.time.s}
       </div>
     );
   }
 }
 
-// ReactDOM.render(<Example/>, document.getElementById('View'));

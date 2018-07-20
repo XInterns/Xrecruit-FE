@@ -1,0 +1,60 @@
+.Instructions-outer{
+height: 100vh;
+width: 100%;
+display: flex;
+flex-direction: column;
+background-color: rgb(233, 224, 238);
+}
+.Instructions-header{
+    
+    justify-content: center;
+    align-self:center;
+    margin-top: 40px;
+    font-size: 60px;
+    color: rgb(145, 130, 153);
+  }
+
+.Instructions-inner{
+  justify-content: center;
+  align-self:center;
+  margin-top: 35px;
+  height:280px;
+  width: 800px;
+  border: solid rgb(145, 130, 153) 2px;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 40px;
+  background-color: rgb(243, 237, 237);
+}
+.Inner{
+  display: flex;
+  flex-direction: column;
+}
+.statement-one{
+  
+  
+}
+.statement-two{
+  
+}
+.statement-three{
+  
+}
+.statement-four{
+  
+}
+.next-button{
+  margin-top: 10px;
+  justify-content: center;
+  align-self:center;
+}
+.button{
+  margin-top: 30px;
+  background-color: rgb(145, 130, 153);
+  justify-content: center;
+  align-self:center;
+  height:40px;
+  width: 120px;
+  color: aliceblue;
+  border: 1px solid white;
+}

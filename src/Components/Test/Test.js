@@ -8,6 +8,7 @@ import {
     Link,
     Route,
     Switch,
+    Redirect
 } from 'react-router-dom';
 var ans = {
     "answer": "",
@@ -15,232 +16,302 @@ var ans = {
     "email": ""
 };
 var mainResponse = [];
-var obj = {};
-obj = sessionStorage.getItem('response');
-obj = JSON.parse(obj);
+var answering=[];
 
 class Test extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            nextpage: false,
             id: "",
-            time:{
-                m:0,
-                s:0
-            }
+        
+            time:""
         }
-        this.data = this.data.bind(this);
+        
         this.submitAnswer = this.submitAnswer.bind(this);
         this.finalSubmit = this.finalSubmit.bind(this);
+        this.textSubmit = this.textSubmit.bind(this);
+        this.nextpage=this.nextpage.bind(this); //to sbumit the whole test
+       
     }
 
     submitAnswer(e) {
-        //var ans = {};
+        if (e.currentTarget.type === 'radio')
+         {
 
-        if (e.currentTarget.type === 'radio') {
-
+            console.log("Radio answer id is "+e.currentTarget.id);
+          
             ans.answer = e.currentTarget.id;
             ans.answer = ans.answer.split("-");
             ans.answer = ans.answer[0];
             ans.qid = e.currentTarget.value;
-            ans.email = obj.data[0].email;
-            console.log(ans);
+            answering[ans.qid]=ans.answer;
+            console.log("Chosen answer is "+ans.answer);
 
         }
-        else if (e.currentTarget.type === 'checkbox') {
-            if (ans.answer == '') {
-                ans.answer = e.currentTarget.id;
+        else if (e.currentTarget.type === 'checkbox') 
+        {
+            
+        if(answering[(((e.currentTarget.id).split('-'))[1])]!=null)
+        {
+            ans.answer=answering[(((e.currentTarget.id).split('-'))[1])]
+        }
+            let b=document.getElementById(e.currentTarget.id).checked;
+        if(b)
+        {
+            var re=(((e.currentTarget.id).split('-'))[0])
+            if (ans.answer == '') //if its blank
+            {
+               ans.answer = re;
+
+           }
+           else 
+           {
+            ans.answer += '~';
+            ans.answer = ans.answer + re;
+        }
+        
+        }
+        else
+        {  
+           var as=ans.answer.split("~")
+           var re=(((e.currentTarget.id).split('-'))[0])
+         
+           var index = as.indexOf(re);
+            if (index > -1) {
+            as.splice(index, 1);
+           }
+           
+           ans.answer=""
+           var tl="~"
+           for(var i=0;i<as.length;i++)
+           {
+            if(i==as.length-1){
+                var tl=""
             }
-            else {
-                ans.answer += '~';
-                ans.answer = ans.answer + e.currentTarget.id;
-            }
-            // ans.answer = e.currentTarget.id;
-            // ans.answer=
-            ans.answer = ans.answer.split("-");
-            ans.answer = ans.answer[0];
-            ans.qid = e.currentTarget.value;
-            ans.email = obj.data[0].email;
+                ans.answer+= as[i]+tl
+           }
+           
+          
+        }
+            ans.qid=(((e.currentTarget.id).split('-'))[1]);
+            answering[(((e.currentTarget.id).split('-'))[1])]=ans.answer
             console.log(ans);
+            console.log(answering)
         }
-        else {
-            ans.qid = e.currentTarget.id;
-            ans.answer = e.currentTarget.value;
-            ans.email = obj.data[0].email;
-
-        }
-
     }
 
-    finalSubmit() {
-        console.log(ans.answer);
-        var alem = document.getElementById("abc");
-        // alem.value;
-        //  console.log("alem is "+alem.getAttribute('value'));
+    setTime(as)
+    {
+        this.setState
+        {
+            time:`${as}`
+        }
+        return as;
+    }
+    textSubmit(v)
+    {
+        console.log("Submitted text id is"+v);
+        var val = document.getElementById(v);
+        console.log("the value is:"+val.value)
+        
         axios({
             method: 'post',
-            url: 'http://192.168.2.188:7000/answers',
+            url: 'http://192.168.2.191:7000/answers',
             data: {
-                email: ans.email,
-                qid: ans.qid,
-                answer: ans.answer
+                email: sessionStorage.getItem('email'),
+                qid: v,
+                answer: val.value
             }
         });
         ans.answer = '';
 
     }
 
-    data() {
-
-        var obj = {};
-        obj = sessionStorage.getItem('obj');
-        //console.log(JSON.stringify(obj));
-        obj = JSON.parse(obj);
-        // console.log(obj.data);
-        //  for(let i=0;i<obj.length;i++)
-        //  console.log(sessionStorage.getItem('obj')[i]);
+    finalSubmit() {
+        
+        console.log("Email id is"+sessionStorage.getItem('email'));
+        axios({
+            method: 'post',
+            url: 'http://192.168.2.191:7000/answers',
+            data: {
+                email: sessionStorage.getItem('email'),
+                qid: ans.qid,
+                answer: answering[ans.qid]
+            }
+        });
+        ans.answer = '';
 
     }
-    render() {
-        console.log("the object in test is /n"+obj);
+    nextpage()
+    {   
+        sessionStorage.setItem('duration',0);
 
-        let len = Object.keys(obj.data).length - 1;
-        console.log(obj.data[len - 1].status);
-        if (obj.data[len - 1].status == 0) {
+        axios({    //first update the test status to 1 i.e complete at the backend
+            method: 'post',
+            url: 'http://192.168.2.191:7000/updatetime',
+            data: {
+                status:1,
+                email:sessionStorage.getItem('email'),
+                duration:0
+            }
+        }).then(()=>{
+            console.log("SUBMITTED!!!");
+            this.setState({
+                nextpage:true
+            })
+        })
+    }
+
+   
+    render() {
+        let obj = JSON.parse(sessionStorage.getItem('response'));
+        console.log("Inside Render object data in test is -- "+JSON.stringify(obj));
+
+        let len = Object.keys(obj.data[1]).length ;
+        console.log("The object length is "+len);
+        console.log("The object status is "+obj.data[1][0].status);
+
+        if (obj.data[1][0].status == 0 || obj.data[1][0].status == 1)  //First Time LOGIN
+         {
+             console.log("FIRST TIME LOGIN");
+
             for (let i = 0; i < len; i++) {
-                if (obj.data[i].qtype === 'MC') {
-                    var temp = obj.data[i].options.split("~");
+                if (obj.data[1][i].qtype === 'MC')
+                 {
+                    var temp = obj.data[1][i].options.split("~");
 
                     mainResponse.push(<div className="container">
-                        <h4>{i + 1}) {obj.data[i].question} </h4><br />
+                        <h4>{i + 1}) {obj.data[1][i].question} </h4><br />
                         <form>
-                            <input type="checkbox" name="option1" value={obj.data[i].qid} id={temp[0] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[0]}<br />
-                            <input type="checkbox" name="option2" value={obj.data[i].qid} id={temp[1] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[1]}<br />
-                            <input type="checkbox" name="option3" value={obj.data[i].qid} id={temp[2] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[2]}<br />
-                            <input type="checkbox" name="option4" value={obj.data[i].qid} id={temp[3] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[3]}<br />
-                            <input type="button" value="Submit answer" onClick={this.finalSubmit} />
+                            <input type="checkbox" name="option1" value={obj.data[1][i].qid} id={temp[0] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} kchecked={false} />{temp[0]}<br />
+                            <input type="checkbox" name="option2" value={obj.data[1][i].qid} id={temp[1] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} kchecked={false} />{temp[1]}<br />
+                            <input type="checkbox" name="option3" value={obj.data[1][i].qid} id={temp[2] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} kchecked={false} />{temp[2]}<br />
+                            <input type="checkbox" name="option4" value={obj.data[1][i].qid} id={temp[3] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} kchecked={false} />{temp[3]}<br />
+                            <input type="button" value="Save answer" onClick={this.finalSubmit} />
+                            
                         </form>
                         <br />
                     </div>);
 
                 }
-                else if (obj.data[i].qtype === 'SC') {
-                    var temp = obj.data[i].options.split("~");
+                else if (obj.data[1][i].qtype === 'SC') {
+                    var temp = obj.data[1][i].options.split("~");
                     mainResponse.push(
                         <div className="container">
-                            <h4>{i + 1}) {obj.data[i].question} </h4>
+                            <h4>{i + 1}) {obj.data[1][i].question} </h4>
                             <form>
-                                <input type="radio" name="option" value={obj.data[i].qid} id={temp[0] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[0]}<br />
-                                <input type="radio" name="option" value={obj.data[i].qid} id={temp[1] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[1]}<br />
-                                <input type="radio" name="option" value={obj.data[i].qid} id={temp[2] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[2]}<br />
-                                <input type="radio" name="option" value={obj.data[i].qid} id={temp[3] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[3]}<br />
-                                <input type="button" value="Submit answer" onClick={this.finalSubmit} />
+                                <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[0] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} />{temp[0]}<br />
+                                <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[1] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} />{temp[1]}<br />
+                                <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[2] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} />{temp[2]}<br />
+                                <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[3] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} />{temp[3]}<br />
+                                <input type="button" value="Save answer" onClick={this.finalSubmit} />
 
                             </form>
                         </div>
                     );
                 }
-                else if (obj.data[i].qtype === 'Text') {
+                else if (obj.data[1][i].qtype === 'Text') {
                     mainResponse.push(
                         <div className="container">
-                            <h4>{i + 1}) {obj.data[i].question} </h4>
-                            <textarea id={obj.data[i].qid} rows="5" cols="50">
+                            <h4>{i + 1}) {obj.data[1][i].question} </h4>
+                            <textarea className="textarea" id={obj.data[1][i].qid} rows="5" cols="50">
 
                             </textarea><br />
-                            <button onClick={this.submitAnswer}>Submit</button>
+                           {/*  <button className="sub" onClick={this.submitAnswer()}>Save answer</button> */}
+                           <button className="sub" onClick={() => this.textSubmit(obj.data[1][i].qid)}>Save answer</button>
                             <br />
                         </div>
                     );
                 }
             }
         }
-        else {
+        else
+         {  //IN case of second login
             console.log("this is else !!!!!!!!!!!!!!");
             for (let i = 0; i < len; i++) {
-                if (obj.data[i].qtype === 'MC') {
-                    var temp = obj.data[i].options.split("~");
+                if (obj.data[1][i].qtype === 'MC')
+                 {
+                    var temp = obj.data[1][i].options.split("~");
 
                     mainResponse.push(<div className="container">
-                        <h4>{i + 1}) {obj.data[i].question} </h4><br />
+                        <h4>{i + 1}) {obj.data[1][i].question} </h4><br />
                         <form>
-                            <input type="checkbox" name="option1" value={obj.data[i].qid} id={temp[0] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[0]}<br />
-                            <input type="checkbox" name="option2" value={obj.data[i].qid} id={temp[1] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[1]}<br />
-                            <input type="checkbox" name="option3" value={obj.data[i].qid} id={temp[2] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[2]}<br />
-                            <input type="checkbox" name="option4" value={obj.data[i].qid} id={temp[3] + "-" + obj.data[i].qid} onChange={this.submitAnswer} />{temp[3]}<br />
-                            <input type="button" value="Submit answer" onClick={this.finalSubmit} />
+                            <input type="checkbox" name="option1" value={obj.data[1][i].qid} id={temp[0] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} />{temp[0]}<br />
+                            <input type="checkbox" name="option2" value={obj.data[1][i].qid} id={temp[1] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} />{temp[1]}<br />
+                            <input type="checkbox" name="option3" value={obj.data[1][i].qid} id={temp[2] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} />{temp[2]}<br />
+                            <input type="checkbox" name="option4" value={obj.data[1][i].qid} id={temp[3] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} />{temp[3]}<br />
+                            <input type="button" value="Save answer" onClick={this.finalSubmit} />
 
                         </form>
                         <br />
                     </div>);
-                    if (obj.data[i].user_answers != null) {
-                        // console.log("hi");
-                        // console.log(obj.data[i].user_answers + ' '+obj.data[i].qid+'\n');
-                        //console.log( typeof(obj.data[i].user_answers));
-                        var t1 = obj.data[i].user_answers + obj.data[i].qid;
-                        //var node = document.getElementById(t1);
-                        //console.log(node);
-                        //node=true;
-
-
+                    if (obj.data[1][i].user_answers != null) {
+                        var t1 = obj.data[1][i].user_answers + obj.data[1][i].qid;
+                        
                     }
 
 
                 }
-                else if (obj.data[i].qtype === 'SC') {
-                    var temp = obj.data[i].options.split("~");
-                    if (obj.data[i].user_answers != null) {
-                        if (obj.data[i].user_answers + obj.data[i].qid == temp[0] + obj.data[i].qid) {
+                else if (obj.data[1][i].qtype === 'SC') 
+                {
+                    console.log("SC Question found!!");
+                    var temp = obj.data[1][i].options.split("~");
+                    if (obj.data[1][i].user_answers != null) 
+                      
+                    {   //in case of status -1
+                        if (obj.data[1][i].user_answers + obj.data[1][i].qid == temp[0] + obj.data[1][i].qid) {
                             mainResponse.push(
                                 <div className="container">
-                                    <h4>{i + 1}) {obj.data[i].question} </h4>
+                                    <h4>{i + 1}) {obj.data[1][i].question} </h4>
                                     <form>
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[0] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={true} />{temp[0]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[1] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[1]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[2] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[2]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[3] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[3]}<br />
-                                        <input type="button" value="Submit answer" onClick={this.finalSubmit} />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[0] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={true} />{temp[0]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[1] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[1]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[2] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[2]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[3] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[3]}<br />
+                                        <input type="button" value="Save answer" onClick={this.finalSubmit} />
 
                                     </form>
                                 </div>);
                         }
-                        else if (obj.data[i].user_answers + obj.data[i].qid == temp[1] + obj.data[i].qid) {
+                        else if (obj.data[1][i].user_answers + obj.data[1][i].qid == temp[1] + obj.data[1][i].qid) {
                             mainResponse.push(
                                 <div className="container">
-                                    <h4>{i + 1}) {obj.data[i].question} </h4>
+                                    <h4>{i + 1}) {obj.data[1][i].question} </h4>
                                     <form>
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[0] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[0]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[1] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={true} />{temp[1]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[2] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[2]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[3] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[3]}<br />
-                                        <input type="button" value="Submit answer" onClick={this.finalSubmit} />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[0] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[0]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[1] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={true} />{temp[1]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[2] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[2]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[3] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[3]}<br />
+                                        <input type="button" value="Save answer" onClick={this.finalSubmit} />
 
                                     </form>
                                 </div>);
                         }
-                        else if (obj.data[i].user_answers + obj.data[i].qid == temp[2] + obj.data[i].qid) {
+                        else if (obj.data[1][i].user_answers + obj.data[1][i].qid == temp[2] + obj.data[1][i].qid) {
                             mainResponse.push(
                                 <div className="container">
-                                    <h4>{i + 1}) {obj.data[i].question} </h4>
+                                    <h4>{i + 1}) {obj.data[1][i].question} </h4>
                                     <form>
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[0] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[0]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[1] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[1]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[2] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={true} />{temp[2]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[3] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[3]}<br />
-                                        <input type="button" value="Submit answer" onClick={this.finalSubmit} />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[0] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[0]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[1] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[1]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[2] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={true} />{temp[2]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[3] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[3]}<br />
+                                        <input type="button" value="Save answer" onClick={this.finalSubmit} />
 
                                     </form>
                                 </div>);
                         }
-                        else if (obj.data[i].user_answers + obj.data[i].qid == temp[3] + obj.data[i].qid) {
+                        else if (obj.data[1][i].user_answers + obj.data[1][i].qid == temp[3] + obj.data[1][i].qid) {
                             mainResponse.push(
                                 <div className="container">
-                                    <h4>{i + 1}) {obj.data[i].question} </h4>
+                                    <h4>{i + 1}) {obj.data[1][i].question} </h4>
                                     <form>
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[0] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[0]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[1] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[1]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[2] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[2]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[3] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={true} />{temp[3]}<br />
-                                        <input type="button" value="Submit answer" onClick={this.finalSubmit} />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[0] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[0]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[1] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[1]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[2] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[2]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[3] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={true} />{temp[3]}<br />
+                                        <input type="button" value="Save answer" onClick={this.finalSubmit} />
 
                                     </form>
                                 </div>);
@@ -249,18 +320,18 @@ class Test extends Component {
 
                             mainResponse.push(
                                 <div className="container">
-                                    <h4>{i + 1}) {obj.data[i].question} </h4>
+                                    <h4>{i + 1}) {obj.data[1][i].question} </h4>
                                     <form>
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[0] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[0]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[1] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[1]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[2] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[2]}<br />
-                                        <input type="radio" name="option" value={obj.data[i].qid} id={temp[3] + "-" + obj.data[i].qid} onChange={this.submitAnswer} checked={false} />{temp[3]}<br />
-                                        <input type="button" value="Submit answer" onClick={this.finalSubmit} />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[0] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[0]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[1] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[1]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[2] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[2]}<br />
+                                        <input type="radio" name="option" value={obj.data[1][i].qid} id={temp[3] + "-" + obj.data[1][i].qid} onChange={this.submitAnswer} checked={false} />{temp[3]}<br />
+                                        <input type="button" value="Save answer" onClick={this.finalSubmit} />
 
                                     </form>
                                 </div>);
                         }
-                    }
+                    }  //answers=null
                     /*if (obj.data[i].user_answers != null) {
                        
                        // console.log(obj.data[i].user_answers+ ' '+obj.data[i].qid+'\n');
@@ -271,12 +342,12 @@ class Test extends Component {
                          //node.checked=true;
                             }*/
                 }
-                else if (obj.data[i].qtype === 'Text') {
+                else if (obj.data[1][i].qtype === 'Text') {
                     mainResponse.push(
                         <div className="container">
                            
                            <div className="questions">   
-                            <h4>{i + 1}) {obj.data[i].question} </h4>
+                            <h4>{i + 1}) {obj.data[1][i].question} </h4>
                             <textarea rows="5" cols="50">
 
                             </textarea><br />
@@ -287,21 +358,21 @@ class Test extends Component {
                     );
                 }
             }
+            console.log("\n Main Response is"+mainResponse);
 
         }
 
         return (
-            <div onClick={this.data} className="container" style={{ backgroundColor: 'white' }}>
-               <div className="header">
-                 <div className="timer">
-                   <Timer/>    {/* m: {this.state.time.m} s: {this.state.time.s} */}
-                 </div>
-                            
-                 <div><button id="abc" value="hello">hello</button></div>
-                 </div>
+            <div className="external-container" >
+            {(sessionStorage.getItem('duration')==0)?this.state.nextpage=true:''} 
+              {(this.state.nextpage) && <Redirect to='/submit'/>} 
+               <div className="test-header">
+                 <div className="Time"><Timer a={this.setTime(sessionStorage.getItem('duration'))}/></div>
+               </div>
                 {mainResponse}
-                {/* <h1>test :) </h1> */}
-            </div>
+            
+            <div className="submit-test"><input className="button" type="button" name="submit" value="Submit the test" onClick={this.nextpage} /></div>
+           </div>
         );
     }
 }

@@ -12,6 +12,7 @@ import Login from './Components/Login/Login.js';
 import Instructions from './Components/Instructions/Instructions.js';
 import Details from './Components/Details/Details.js';
 import Test from './Components/Test/Test.js';
+import Submit from './Components/submit/submit.js';
 import Routes from './Routes.js';
 
 var obj={};
@@ -20,28 +21,17 @@ export default class App extends Component {
     return (
       <Router> 
       <div >
-       
-      {/* <NavLink  to="/" ><pre> <h2> Login </h2> </pre>        
-      </NavLink> 
-      <NavLink to="/Instructions"  >
-             <pre> <h2> Instructions </h2> </pre>        
-      </NavLink> 
-      <NavLink to="/Details"  >
-              <pre> <h2> Details </h2> </pre>        
-      </NavLink> 
-      <NavLink to="/Test"  >
-              <pre> <h2> Test </h2> </pre>        
-      </NavLink> */}
 
                  <Switch>
                     <Route exact path="/" exact  component={Login} />
                     <Route exact path="/instructions" exact  component={Instructions} />
                     <Route exact path="/details" exact  component={Details} />
                     <Route exact path="/test" exact  component={Test} />
+                    <Route exact path="/submit" exact  component={Submit} />  //last page
+
+
                 </Switch>
       
-      
-      {/* </header> */}
 </div>
 </Router>
     );

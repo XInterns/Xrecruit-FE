@@ -1,0 +1,49 @@
+.external-container{
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(233, 224, 238);
+}
+
+.test-header{
+    position: fixed;
+    font-size: 20px;
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+
+}
+        .Time{
+            margin-top: 20px;
+            margin-left: 20px;
+            background-color: rgb(145, 130, 153);
+            height:40px;
+            width: 250px;
+            color: white;
+            border: 1px solid white;  
+            text-align: center;
+            justify-content: auto;
+
+        }
+        
+.submit-test{
+    margin-top: 10px;
+    justify-content: center;
+    align-self:center;
+    margin-bottom: 30px;
+
+}
+
+        .button{
+            margin-top: 30px;
+            background-color: rgb(145, 130, 153);
+            justify-content: center;
+            align-self:center;
+            height:40px;
+            width: 180px;
+            color: white;
+            border: 1px solid white;
+        }
+
+.container{
+        margin-top: 4%;
+}
